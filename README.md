@@ -11,9 +11,9 @@
 |--------|--------|
 | Sánchez Echevarría, Sebastian Alberto | 100159969 |
 | Gómez Ccente, Lino Roy | 100162894 |
-| [Integrante 3] | [Código] |
-| [Integrante 4] | [Código] |
-| [Integrante 5] | [Código] |
+| Quispe Huaman Henrik | 100163206 |
+| Teves Paniura Lucio Raymundo | 100160987 |
+| Salas Jimenez Angel David | 100163349 |
 
 ---
 
