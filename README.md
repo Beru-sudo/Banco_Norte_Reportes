@@ -230,9 +230,9 @@ SELECT * FROM refrescar_vistas_materializadas();
 |------------|----------------|
 | Sánchez Echevarría, Sebastian Alberto | Tarea 3 (SQL) + Infraestructura Git |
 | Gómez Ccente, Lino Roy | Tarea 2 (VaR en R) + Documentación RMarkdown |
-| [Integrante 3] | Tarea 1 (Python ETL) + Tests unitarios |
-| [Integrante 4] | Dashboards Power BI + Visualización ejecutiva |
-| [Integrante 5] | Jupyter Notebooks + Documentación reproducible |
+| Quispe Huaman Henry | Tarea 1 (Python ETL) + Tests unitarios |
+| Teves Paniura Lucio Raymundo | Dashboards Power BI + Visualización ejecutiva |
+| Salaz Jimenez Angel David | Jupyter Notebooks + Documentación reproducible |
 
 ---
 
