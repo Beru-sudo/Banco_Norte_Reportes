@@ -1,8 +1,11 @@
 # Caso 3 — Automatización de Reportes Financieros · BancoNorte
 
 > **Curso:** Introducción a Data Science
+>
 > **Institución:** Universidad Científica del Sur
+>
 > **Carrera:** Ingeniería Empresarial y de Sistemas
+>
 > **Año:** 2026
 
 ## Integrantes
