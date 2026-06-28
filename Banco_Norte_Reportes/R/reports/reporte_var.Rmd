@@ -1,0 +1,320 @@
+---
+title: "Reporte de Analisis de Riesgo - VaR"
+subtitle: "BancoNorte - Departamento Financiero"
+author: "[Sanchez Echevarria, Sebastian Alberto]"
+date: "`r format(Sys.Date(), '%d de %B de %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+  pdf_document:
+    toc: true
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 6,
+  dpi = 300
+)
+
+library(tidyverse)
+library(quantmod)
+library(PerformanceAnalytics)
+library(knitr)
+library(kableExtra)
+
+source("../var/var_calculator.R")
+```
+
+==================================================================================================
+
+1.              RESUMEN EJECUTIVO
+
+==================================================================================================
+
+Este reporte presenta el analisis de Value at Risk (VaR) 
+para la cartera de inversion de BancoNorte, calculado con tres 
+metodologias estadisticas diferentes.
+
+=== PARAMETROS DE LA CARTERA ===
+
+```{r}
+tickers <- c("AAPL", "MSFT", "GOOGL", "AMZN", "TSLA")
+weights <- c(0.25, 0.25, 0.20, 0.20, 0.10)
+confidence <- 0.95
+
+cartera_df <- tibble(
+  Activo = tickers,
+  Peso = paste0(weights * 100, "%"),
+  Descripcion = c(
+    "Apple Inc. - Tecnologia",
+    "Microsoft Corp. - Tecnologia", 
+    "Alphabet Inc. - Tecnologia",
+    "Amazon.com Inc. - Consumo/E-commerce",
+    "Tesla Inc. - Automotriz/Energia"
+  )
+)
+
+cartera_df %>%
+  kable(format = "html", align = c("l", "c", "l")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+```
+
+===============================================================================================
+
+2.              DESCARGA DE DATOS
+
+===============================================================================================
+
+```{r}
+fecha_inicio <- as.character(Sys.Date() - 365*2)
+fecha_fin <- as.character(Sys.Date())
+
+datos <- map(tickers, ~getSymbols(.x, from = fecha_inicio, to = fecha_fin, 
+                                   auto.assign = FALSE)[,6]) %>%
+  reduce(merge) %>%
+  `colnames<-`(tickers)
+
+resumen_datos <- tibble(
+  Activo = tickers,
+  "Precio Inicial" = round(as.numeric(first(datos)), 2),
+  "Precio Final" = round(as.numeric(last(datos)), 2),
+  "Variacion %" = round((as.numeric(last(datos)) / as.numeric(first(datos)) - 1) * 100, 2),
+  "Observaciones" = nrow(datos)
+)
+
+resumen_datos %>%
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+============================================================================================
+
+3.              ANALISIS DE RETORNOS
+
+===============================================================================================
+
+```{r}
+retornos <- diff(log(datos)) %>% na.omit()
+
+stats_table <- retornos %>%
+  as.data.frame() %>%
+  summarise(across(everything(), list(
+    Media = ~round(mean(.) * 100, 4),
+    "Desv. Est." = ~round(sd(.) * 100, 4),
+    Minimo = ~round(min(.) * 100, 4),
+    Maximo = ~round(max(.) * 100, 4),
+    "Sharpe Diario" = ~round(mean(.) / sd(.), 4)
+  )))
+
+stats_table %>%
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE)
+```
+
+===== Matriz de Correlacion ========
+
+```{r}
+cor_matrix <- cor(retornos)
+
+cor_df <- as.data.frame(cor_matrix) %>%
+  rownames_to_column("Activo") %>%
+  pivot_longer(-Activo, names_to = "Par", values_to = "Correlacion")
+
+ggplot(cor_df, aes(x = Activo, y = Par, fill = Correlacion)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Correlacion, 2)), color = "black", size = 3) +
+  scale_fill_gradient2(low = "red", mid = "white", high = "green", midpoint = 0) +
+  labs(title = "Matriz de Correlacion de Retornos", x = "", y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+===============================================================================================
+
+4.              CALCULO DE VaR
+
+4.1. Metodo Parametrico (Varianza - Covarianza)
+
+===============================================================================================
+
+```{r}
+var_param <- calcular_var(
+  tickers = tickers,
+  weights = weights,
+  confidence = confidence,
+  method = "parametric",
+  periodo_inicio = fecha_inicio,
+  periodo_fin = fecha_fin
+)
+
+resultado_param <- tibble(
+  Metrica = c("VaR Diario", "VaR 10 dias", "Confianza", "Volatilidad Cartera"),
+  Valor = c(
+    paste0(round(var_param$var_diario * 100, 4), "%"),
+    var_param$var_10d_pct,
+    paste0(confidence * 100, "%"),
+    paste0(round(var_param$detalles_metodo$volatilidad_cartera * 100, 4), "%")
+  )
+)
+
+resultado_param %>%
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+======================================================================================
+
+4.2. METODO HISTORICO
+
+=========================================================================================
+
+```{r}
+var_hist <- calcular_var(
+  tickers = tickers,
+  weights = weights,
+  confidence = confidence,
+  method = "historical",
+  periodo_inicio = fecha_inicio,
+  periodo_fin = fecha_fin
+)
+
+resultado_hist <- tibble(
+  Metrica = c("VaR Diario", "VaR 10 dias", "Confianza", "Observaciones"),
+  Valor = c(
+    paste0(round(var_hist$var_diario * 100, 4), "%"),
+    var_hist$var_10d_pct,
+    paste0(confidence * 100, "%"),
+    var_hist$detalles_metodo$n_observaciones
+  )
+)
+
+resultado_hist %>%
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+==================================================================================
+
+4.3. METODO MONTE CARLO (10,000 SIMULACIONES)
+
+=========================================================================================
+
+```{r}
+var_mc <- calcular_var(
+  tickers = tickers,
+  weights = weights,
+  confidence = confidence,
+  method = "montecarlo",
+  n_sim = 10000,
+  periodo_inicio = fecha_inicio,
+  periodo_fin = fecha_fin
+)
+
+resultado_mc <- tibble(
+  Metrica = c("VaR Diario", "VaR 10 dias", "Confianza", "Simulaciones", "Media Simulada"),
+  Valor = c(
+    paste0(round(var_mc$var_diario * 100, 4), "%"),
+    var_mc$var_10d_pct,
+    paste0(confidence * 100, "%"),
+    format(var_mc$detalles_metodo$n_simulaciones, big.mark = ","),
+    paste0(round(var_mc$detalles_metodo$media_simulada * 100, 4), "%")
+  )
+)
+
+resultado_mc %>%
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+```
+
+==================================================================================================
+
+5. COMPARACIÓN DE METODOS
+
+=========================================================================================
+
+```{r}
+comparacion <- tibble(
+  Metodo = c("Parametrico", "Historico", "Monte Carlo"),
+  "VaR Diario" = c(
+    paste0(round(var_param$var_diario * 100, 4), "%"),
+    paste0(round(var_hist$var_diario * 100, 4), "%"),
+    paste0(round(var_mc$var_diario * 100, 4), "%")
+  ),
+  "VaR 10 dias" = c(var_param$var_10d_pct, var_hist$var_10d_pct, var_mc$var_10d_pct),
+  Supuestos = c(
+    "Distribucion normal",
+    "Datos historicos representativos",
+    "Modelo de correlacion correcto"
+  ),
+  "Uso Recomendado" = c(
+    "Carteras diversificadas, volatilidad estable",
+    "Datos suficientes (2+ anos)",
+    "Carteras complejas, stress testing"
+  )
+)
+
+comparacion %>%
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = TRUE) %>%
+  row_spec(0, bold = TRUE, background = "#1F4E79", color = "white")
+```
+
+==================================================================================================
+
+6. VISUALIZACION DE DISTRIBUCIONES
+
+=========================================================================================
+
+```{r}
+ret_cartera <- as.matrix(retornos) %*% weights
+
+p1 <- ggplot(tibble(retorno = as.vector(ret_cartera)), aes(x = retorno)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "steelblue", alpha = 0.7) +
+  geom_density(color = "darkblue", linewidth = 1) +
+  geom_vline(xintercept = -var_hist$var_diario, color = "red", linetype = "dashed") +
+  labs(title = "Metodo Historico", x = "Retorno Diario", y = "Densidad") +
+  theme_minimal()
+
+sim_data <- tibble(retorno = var_mc$detalles_metodo$escenarios)
+p2 <- ggplot(sim_data, aes(x = retorno)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 50, fill = "darkgreen", alpha = 0.7) +
+  geom_density(color = "green4", linewidth = 1) +
+  geom_vline(xintercept = -var_mc$var_diario, color = "red", linetype = "dashed") +
+  labs(title = "Metodo Monte Carlo", x = "Retorno Diario", y = "Densidad") +
+  theme_minimal()
+
+p1
+```
+
+==================================================================================================
+
+7. CONCLUSIONES Y RECOMENDACIONES
+
+=========================================================================================
+
+Hallazgos Principales:
+
+1. El VaR a 10 dias al 95% de confianza indica que la cartera tiene un riesgo 
+controlado dentro de los parametros aceptables para el perfil de BancoNorte.
+
+2. Los tres metodos convergen en valores similares, lo que aumenta la 
+confianza en la estimacion.
+
+3. La correlacion entre activos tecnologicos es elevada, 
+lo que sugiere diversificar hacia sectores no correlacionados.
+
+Recomendaciones: 
+
+  Revisar la cartera mensualmente con el metodo historico para detectar cambios en la distribucion de retornos.
+
+  Usar Monte Carlo para stress testing ante eventos extremos (black swan).
+
+  Considerar el Expected Shortfall (CVaR) como complemento al VaR para medir perdidas en la cola.

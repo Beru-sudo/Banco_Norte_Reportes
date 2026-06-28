@@ -1,0 +1,49 @@
+# ============================================
+# REQUIREMENTS - Caso 3: Automatizacion de Reportes Financieros
+# BancoNorte - Data Warehouse
+# Python 3.10+
+# ============================================
+
+# --- Core Data Manipulation ---
+pandas==2.2.2
+numpy==1.26.4
+
+# --- Excel Processing ---
+openpyxl==3.1.5
+xlrd==2.0.1
+
+# --- Financial Data ---
+yfinance==0.2.40
+
+# --- Data Validation & Quality ---
+pandera==0.19.3
+great-expectations==0.18.19
+
+# --- Logging & Monitoring ---
+structlog==24.4.0
+
+# --- Testing ---
+pytest==8.3.2
+pytest-cov==5.0.0
+
+# --- Jupyter Notebooks ---
+jupyter==1.0.0
+ipykernel==6.29.5
+
+# --- Visualization ---
+matplotlib==3.9.1
+seaborn==0.13.2
+plotly==5.22.0
+
+# --- Environment Management ---
+python-dotenv==1.0.1
+
+# --- Database Connectivity (optional, for direct SQL from Python) ---
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.31
+
+# --- Date/Time Utilities ---
+python-dateutil==2.9.0
+
+# --- Progress Bars ---
+tqdm==4.66.4

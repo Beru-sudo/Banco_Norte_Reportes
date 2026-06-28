@@ -1,0 +1,107 @@
+# ============================================
+# .gitignore - Caso 3: Automatizacion de Reportes Financieros
+# BancoNorte - Data Warehouse
+# ============================================
+
+# --- Datos (NO versionar) ---
+data/raw/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# --- Reportes generados ---
+python/reports/*
+!python/reports/.gitkeep
+r/reports/*.html
+r/reports/*.pdf
+notebooks/final/*
+!notebooks/final/.gitkeep
+
+# --- Dashboards (archivos binarios grandes) ---
+dashboards/powerbi/*.pbix
+dashboards/tableau/*.twb
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Entornos virtuales ---
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv
+
+# --- IDEs y editores ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# --- R ---
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# --- Logs y temporales ---
+*.log
+*.tmp
+*.temp
+*.cache
+
+# --- Sistema operativo ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Archivos de configuracion local ---
+.env
+.env.local
+config.local.yaml
+secrets.json
+
+# --- Cobertura de tests ---
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# --- Documentacion generada ---
+docs/_build/
