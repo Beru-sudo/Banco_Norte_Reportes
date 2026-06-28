@@ -262,4 +262,4 @@ SELECT * FROM refrescar_vistas_materializadas();
 
 ## Licencia
 
-Proyecto académico — Universidad Científica del Sur, 2026.
+PROYECTO ACADÉMICO — UNIVERSIDAD CIENTÍFICA DEL SUR, 2026.
